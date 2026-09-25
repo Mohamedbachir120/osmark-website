@@ -48,16 +48,19 @@
         <span></span><span></span>
       </button>
     </nav>
-    <div class="mobile-menu" id="mobile-menu">
-      <ul>
-        <li><a href="#services">Services</a></li>
-        <li><a href="#process">Process</a></li>
-        <li><a href="#work">Work</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-      <a href="#contact" class="btn btn-primary">Start a project</a>
-    </div>
   </header>
+
+  <!-- Mobile menu: kept outside the header so position:fixed is relative to the viewport
+       (the header's transform/backdrop-filter would otherwise trap it) -->
+  <div class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#process">Process</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="#contact" class="btn btn-primary">Start a project</a>
+  </div>
 
   <!-- Chapter progress -->
   <nav class="chapter-nav" aria-label="Services chapters">

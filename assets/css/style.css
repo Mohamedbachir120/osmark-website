@@ -209,13 +209,14 @@ main, .site-footer { position: relative; z-index: 2; }
   position: fixed; inset: var(--header-h) 0 0; z-index: 49;
   display: flex; flex-direction: column; gap: 2rem;
   padding: 2rem var(--gutter);
-  background: rgba(5, 11, 26, 0.96);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: #050b1a;
+  border-top: 1px solid var(--line);
+  overflow-y: auto;
   opacity: 0; visibility: hidden; transform: translateY(-8px);
   transition: opacity 0.3s, transform 0.4s var(--ease-out), visibility 0s linear 0.3s;
 }
 .menu-open .mobile-menu { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.menu-open .site-header { background: #050b1a; border-color: var(--line); }
 .mobile-menu ul { display: grid; gap: 0.25rem; }
 .mobile-menu a:not(.btn) {
   display: flex; align-items: center; min-height: 56px;
