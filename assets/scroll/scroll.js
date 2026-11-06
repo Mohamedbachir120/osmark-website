@@ -226,13 +226,30 @@
     const [, name, text] = B_STEPS[i];
     bName.textContent = name;
     bText.textContent = text;
-    bCaption.classList.remove('swap');
-    void bCaption.offsetWidth;
-    bCaption.classList.add('swap');
+    bCaption.animate(
+      [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 500, easing: 'cubic-bezier(.16, 1, .3, 1)' },
+    );
     bStepItems.forEach((li, j) => {
       li.classList.toggle('on', j === i);
       li.classList.toggle('done', j < i);
     });
+  }
+
+  // A wipe reveals the frame from the ground up behind a soft edge; a fade just raises its opacity.
+  function paintFrame(img, kind, t) {
+    let mask = '';
+    let opacity = t;
+    if (kind === 'wipe') {
+      opacity = t > 0 ? 1 : 0;
+      if (t > 0 && t < 1) {
+        const edge = lerp(-30, 100, ease(t));
+        mask = `linear-gradient(to top, #000 ${edge}%, transparent ${edge + 30}%)`;
+      }
+    }
+    img.style.opacity = opacity.toFixed(3);
+    img.style.webkitMaskImage = mask;
+    img.style.maskImage = mask;
   }
 
   function renderBuild(p) {
@@ -257,20 +274,8 @@
     }
 
     for (let i = 2; i < bFrames.length + 1; i++) {
-      const img = bFrames[i - 1];
       const [a, b, kind] = B_IN[i];
-      const t = range(p, a, b);
-      if (kind === 'wipe' && t > 0 && t < 1) {
-        const edge = lerp(-30, 100, ease(t));
-        const g = `linear-gradient(to top, #000 ${edge}%, transparent ${edge + 30}%)`;
-        img.style.opacity = '1';
-        img.style.webkitMaskImage = g;
-        img.style.maskImage = g;
-      } else {
-        img.style.opacity = (kind === 'wipe' ? (t > 0 ? 1 : 0) : t).toFixed(3);
-        img.style.webkitMaskImage = '';
-        img.style.maskImage = '';
-      }
+      paintFrame(bFrames[i - 1], kind, range(p, a, b));
     }
 
     // Copy and HUD.

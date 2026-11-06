@@ -164,8 +164,6 @@ p { margin: 0; }
 .build-caption { display: grid; gap: 4px; padding-bottom: 8px; }
 .build-caption strong { font-size: clamp(20px, 1.8vw, 28px); letter-spacing: -0.02em; }
 .build-caption span { color: var(--ink-soft); font-size: 16px; max-width: 38ch; }
-.build-caption.swap { animation: build-swap .5s cubic-bezier(.16, 1, .3, 1); }
-@keyframes build-swap { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .build-steps {
   position: absolute; right: var(--gutter); top: 50%; transform: translateY(-50%);
   list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; text-align: right;
