@@ -146,6 +146,12 @@ p { margin: 0; }
 .act-build { height: calc(var(--vh) * 7.5); background: #0a1736; }
 .act-build .sticky { background: radial-gradient(120% 80% at 50% 20%, #1b3a8a 0%, #0b1a44 45%, var(--bg) 100%); }
 .build-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.build-video { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 60%; }
+.has-video .build-video { display: block; }
+.has-video .build-stage { display: none; }
+@media (max-aspect-ratio: 9/10) {
+  .build-video { inset: 64px auto auto 50%; width: 230vw; height: auto; aspect-ratio: 16 / 9; translate: -50% 0; -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 86%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0, #000 86%, transparent 100%); }
+}
 .build-frame, .build-plan { position: absolute; left: 0; top: 0; width: 100%; height: 100%; max-width: none; }
 .build-frame { opacity: 0; }
 .build-frame[data-frame="1"] { opacity: 1; }
@@ -232,6 +238,8 @@ p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .act-hero, .act-work, .act-close, .act-build { height: auto; }
   .build-hud, .build-steps, .build-bar, .build-plan { display: none; }
+  .has-video .build-video { display: none; }
+  .has-video .build-stage { display: block; }
   .build-stage { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%); mask-image: linear-gradient(90deg, transparent 0, #000 22%); }
   .sticky { position: relative; height: auto; min-height: var(--vh); }
   .act-rail .sticky { overflow-x: auto; min-height: 0; padding: 96px 0; }

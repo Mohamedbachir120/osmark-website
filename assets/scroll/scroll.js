@@ -193,6 +193,39 @@
   let BL = {};
   let bStep = -1;
 
+  // Video mode: when the section carries a video, scroll scrubs it instead of stacking stills.
+  const bVideo = buildAct.querySelector('[data-build-video]');
+  const V_STEPS = [0, 0.07, 0.13, 0.18, 0.32, 0.4, 0.5, 0.72, 0.85];
+  let vTime = 0;
+  if (bVideo && !reduced) {
+    buildAct.classList.add('has-video');
+    bVideo.src = vw() < 700 ? bVideo.dataset.srcSm : bVideo.dataset.src;
+    bVideo.load();
+  }
+
+  function renderBuildVideo(p) {
+    const v = range(p, 0.03, 0.97);
+    const d = bVideo.duration;
+    if (d) {
+      vTime = lerp(vTime, v * (d - 0.05), 0.25);
+      if (!bVideo.seeking && Math.abs(bVideo.currentTime - vTime) > 1 / 60) bVideo.currentTime = vTime;
+    }
+    bVideo.style.transform = `scale(${lerp(1.04, 1, ease(v))})`;
+    const c = range(p, 0.02, 0.08);
+    bIntro.style.opacity = (1 - c).toFixed(3);
+    bIntro.style.visibility = c >= 1 ? 'hidden' : 'visible';
+    bIntro.style.translate = `0 ${-40 * easeOut(c)}px`;
+    const h = range(p, 0.07, 0.12).toFixed(3);
+    bHud.style.opacity = h;
+    bSteps.style.opacity = h;
+    bBar.style.transform = `scaleX(${p.toFixed(4)})`;
+    const floors = Math.round(lerp(0, 4, range(v, 0.3, 0.36)) + lerp(0, 5, range(v, 0.36, 0.46)));
+    bFloor.textContent = 'R+' + floors;
+    let i = 0;
+    while (i < V_STEPS.length - 1 && v >= V_STEPS[i + 1]) i++;
+    setStep(i);
+  }
+
   function layoutBuild() {
     const W0 = vw(), H0 = vh();
     const aspect = B_W / B_H;
@@ -348,7 +381,8 @@
     renderHero(progress(hero));
     renderRail(progress(railAct));
     renderWork(progress(workAct));
-    renderBuild(progress(buildAct));
+    if (buildAct.classList.contains('has-video')) renderBuildVideo(progress(buildAct));
+    else renderBuild(progress(buildAct));
     renderClose(progress(closeAct));
     requestAnimationFrame(frame);
   }
