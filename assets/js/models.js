@@ -8,13 +8,15 @@
 (function () {
   'use strict';
 
-  // Optional image textures (paths relative to index.html). Leave null to use
-  // the procedural versions.
+  // Image textures (paths relative to index.html). Set one to null to fall back
+  // to the procedural canvas version.
   const TEXTURES = {
-    earth: null,      // 2:1 equirectangular map, e.g. 'assets/textures/earth.jpg'
-    website: null,    // 16:10 website screenshot for the browser screen
-    app: null,        // ~9:19.5 app screenshot for the phone screen
-    paper: null,      // seamless square paper texture for the shopping bag
+    earth: 'assets/textures/earth.jpg',             // 2:1 equirectangular night map
+    earthLights: 'assets/textures/earth-lights.jpg', // city lights (emissive), derived from earth.jpg
+    earthRough: 'assets/textures/earth-rough.jpg',   // ocean = glossy, land = rough
+    website: null,                                   // 16:10 website screenshot for the browser screen
+    app: 'assets/textures/app.jpg',                  // ~9:19.5 app screenshot for the phone screen
+    paper: 'assets/textures/paper.jpg',              // seamless square paper texture for the shopping bag
   };
 
   const TAU = Math.PI * 2;
@@ -87,14 +89,15 @@
       t.anisotropy = maxAniso;
       return t;
     }
-    function loadInto(material, key, slot = 'map') {
+    // swaps a procedural texture for an image once it has loaded
+    function loadInto(material, key, slot = 'map', { emissive = false, srgb = true } = {}) {
       if (!TEXTURES[key]) return;
       new THREE.TextureLoader().load(TEXTURES[key], (t) => {
-        t.colorSpace = THREE.SRGBColorSpace;
+        if (srgb) t.colorSpace = THREE.SRGBColorSpace;
         t.anisotropy = maxAniso;
         if (key === 'paper') { t.wrapS = t.wrapT = THREE.RepeatWrapping; }
         material[slot] = t;
-        if (slot === 'map' && material.emissiveMap) material.emissiveMap = t;
+        if (emissive) material.emissiveMap = t;
         material.needsUpdate = true;
       });
     }
@@ -315,9 +318,12 @@
       const earthMat = M.P({
         map: tex.color, roughnessMap: tex.rough, roughness: 1, metalness: 0.05,
         emissive: new THREE.Color(1, 1, 1), emissiveMap: tex.glow, emissiveIntensity: 0.9,
-        envMapIntensity: 0.35,
+        envMapIntensity: 0.22,
       });
+      if (TEXTURES.earth) { earthMat.color.setRGB(1.7, 1.7, 1.9); earthMat.emissiveIntensity = 1.8; }
       loadInto(earthMat, 'earth');
+      loadInto(earthMat, 'earthLights', 'emissiveMap');
+      loadInto(earthMat, 'earthRough', 'roughnessMap', { srgb: false });
       const earth = mesh(new THREE.SphereGeometry(R, mobile ? 64 : 96, mobile ? 48 : 64), earthMat, tilt);
 
       // atmosphere rim
@@ -351,7 +357,7 @@
       ring(3.2, 1.2, 0.4, M.gold(), [0.6, 3.4]);
       ring(3.65, 1.4, -0.6, M.goldBrushed(), [1.9, 4.6, 5.8]);
       g.userData.tick = (t) => {
-        earth.rotation.y = t * 0.08;
+        earth.rotation.y = -2.0 + Math.sin(t * 0.06) * 0.9; // sway over Americas, Atlantic, Europe & Africa
         orbits[0].rotation.y = -t * 0.12;
         orbits[1].rotation.y = -t * 0.08;
       };
@@ -446,7 +452,7 @@
       mesh(slab(6.4, 4.2, 0.28, 0.14, 0.04), M.graphite(), g);
       const screenMat = M.P({ color: 0xffffff, roughness: 0.18, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, emissive: new THREE.Color(1, 1, 1), emissiveIntensity: 0.55 });
       screenMat.map = screenMat.emissiveMap = websiteTexture();
-      loadInto(screenMat, 'website');
+      loadInto(screenMat, 'website', 'map', { emissive: true });
       mesh(screenGeo(6.1, 3.9, 0.16), screenMat, g, [0, 0, 0.115]);
       // traffic lights
       const dot = new THREE.CylinderGeometry(0.085, 0.085, 0.04, 32);
@@ -508,7 +514,7 @@
       mesh(slab(2.3, 4.7, 0.36, 0.27, 0.02), M.graphite(), g);
       const screenMat = M.P({ color: 0xffffff, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.03, emissive: new THREE.Color(1, 1, 1), emissiveIntensity: 0.55 });
       screenMat.map = screenMat.emissiveMap = appTexture();
-      loadInto(screenMat, 'app');
+      loadInto(screenMat, 'app', 'map', { emissive: true });
       mesh(screenGeo(2.1, 4.5, 0.3), screenMat, g, [0, 0, 0.158]);
       mesh(new THREE.CapsuleGeometry(0.09, 0.52, 6, 16), M.P({ color: 0x05070d, roughness: 0.2, metalness: 0.5 }), g, [0, 2.05, 0.165], [0, 0, Math.PI / 2]);
       // app icons
