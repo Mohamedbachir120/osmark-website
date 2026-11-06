@@ -199,8 +199,15 @@
   let vTime = 0;
   if (bVideo && !reduced) {
     buildAct.classList.add('has-video');
-    bVideo.src = vw() < 700 ? bVideo.dataset.srcSm : bVideo.dataset.src;
-    bVideo.load();
+    // Download the whole clip and play it from memory: scrubbing then works even on hosts
+    // that do not answer byte-range requests (many shared/cPanel servers), where a plain src
+    // stays frozen on the first frame.
+    const url = vw() < 700 ? bVideo.dataset.srcSm : bVideo.dataset.src;
+    fetch(url)
+      .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(r.status))))
+      .then((blob) => { bVideo.src = URL.createObjectURL(blob); })
+      .catch(() => { bVideo.src = url; })
+      .finally(() => bVideo.load());
   }
 
   function renderBuildVideo(p) {
