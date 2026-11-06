@@ -63,7 +63,7 @@
       top = H0 * 0.3 - 0.47 * Hh;
     } else {
       if (W0 / H0 > aspect) { W = W0; Hh = W0 / aspect; } else { Hh = H0; W = H0 * aspect; }
-      const fx = parseFloat(stage.dataset.focusX || 0.5);
+      const fx = Number.parseFloat(stage.dataset.focusX || '0.5');
       left = clamp(W0 / 2 - fx * W, W0 - W, 0);
       top = (H0 - Hh) / 2;
     }
@@ -76,7 +76,8 @@
     screen.style.transform = homography(SHOT_W, SHOT_H, quad);
     const xs = quad.map((q) => q[0]), ys = quad.map((q) => q[1]);
     const sw = Math.max(...xs) - Math.min(...xs), sh = Math.max(...ys) - Math.min(...ys);
-    const cx = xs.reduce((a, b) => a + b) / 4, cy = ys.reduce((a, b) => a + b) / 4;
+    const cx = xs.reduce((a, b) => a + b, 0) / 4;
+    const cy = ys.reduce((a, b) => a + b, 0) / 4;
     // End scale: the screen fills about 92% of whichever viewport side runs out first.
     const S = Math.min((W0 * 0.92) / sw, (H0 * 0.92) / sh);
     H = { left, top, cx, cy, S, W0, H0 };
