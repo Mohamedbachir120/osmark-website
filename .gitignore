@@ -1,3 +1,9 @@
 .DS_Store
 .vercel
 node_modules
+
+# scroll-craft working files (big videos, screenshots)
+scrollcraft/builds/
+lab/
+out/
+.env
