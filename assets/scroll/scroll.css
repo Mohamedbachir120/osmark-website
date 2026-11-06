@@ -142,6 +142,55 @@ p { margin: 0; }
   .work-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
 }
 
+/* ACT 3b build: one plot, from plan to lit building */
+.act-build { height: calc(var(--vh) * 7.5); background: #0a1736; }
+.act-build .sticky { background: radial-gradient(120% 80% at 50% 20%, #1b3a8a 0%, #0b1a44 45%, var(--bg) 100%); }
+.build-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.build-frame, .build-plan { position: absolute; left: 0; top: 0; width: 100%; height: 100%; max-width: none; }
+.build-frame { opacity: 0; }
+.build-frame[data-frame="1"] { opacity: 1; }
+.build-plan { width: 1536px; height: 1024px; transform-origin: 0 0; backface-visibility: hidden; }
+.build-scrim {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5, 11, 26, .72) 0%, rgba(5, 11, 26, .25) 30%, rgba(5, 11, 26, 0) 48%),
+    linear-gradient(0deg, rgba(5, 11, 26, .7) 0%, rgba(5, 11, 26, 0) 28%);
+}
+.build-intro { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); max-width: min(620px, 46vw); }
+.build-intro h2 { font-size: clamp(40px, 4.2vw, 72px); margin: 16px 0 20px; }
+.build-intro h2 em { display: block; }
+.build-hud { position: absolute; left: var(--gutter); bottom: clamp(56px, 10vh, 110px); display: flex; align-items: flex-end; gap: 22px; opacity: 0; max-width: min(560px, 46vw); }
+.build-floor { font-family: var(--serif); font-style: italic; font-size: clamp(56px, 6vw, 104px); line-height: .9; color: var(--gold); font-variant-numeric: tabular-nums; min-width: 2.6em; text-shadow: 0 8px 40px rgba(5, 11, 26, .6); }
+.build-caption { display: grid; gap: 4px; padding-bottom: 8px; }
+.build-caption strong { font-size: clamp(20px, 1.8vw, 28px); letter-spacing: -0.02em; }
+.build-caption span { color: var(--ink-soft); font-size: 16px; max-width: 38ch; }
+.build-steps {
+  position: absolute; right: var(--gutter); top: 50%; transform: translateY(-50%);
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; text-align: right;
+  font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: rgba(245, 239, 227, .42);
+  opacity: 0;
+}
+.build-steps li { position: relative; padding-right: 22px; transition: color .4s; }
+.build-steps li::after { content: ''; position: absolute; right: 0; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; border: 1px solid currentColor; transition: background-color .4s, transform .4s; }
+.build-steps li.done { color: rgba(233, 203, 139, .7); }
+.build-steps li.done::after { background: currentColor; }
+.build-steps li.on { color: var(--ink); }
+.build-steps li.on::after { background: var(--red); border-color: var(--red); transform: scale(1.5); }
+.build-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(233, 203, 139, .12); }
+.build-bar span { display: block; height: 100%; width: 100%; background: var(--gold); transform-origin: 0 50%; transform: scaleX(0); }
+@media (max-width: 860px) {
+  .build-scrim { background: linear-gradient(0deg, var(--bg) 0%, rgba(5, 11, 26, .92) 26%, rgba(5, 11, 26, 0) 50%); }
+  .build-intro { top: auto; bottom: 40px; right: var(--gutter); transform: none; max-width: none; }
+  .build-intro h2 { font-size: clamp(34px, 9.5vw, 52px); margin: 10px 0 12px; }
+  .build-hud { bottom: 40px; right: var(--gutter); max-width: none; gap: 16px; }
+  .build-floor { font-size: 56px; min-width: 2.4em; }
+  .build-caption span { font-size: 15px; }
+  .build-steps { display: none; }
+}
+@media (max-aspect-ratio: 9/10) {
+  .build-stage { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 86%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 86%, transparent 100%); }
+}
+
 /* ACT 4 services */
 .act-services { padding: clamp(96px, 16vh, 180px) var(--gutter); }
 .services-inner { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
@@ -181,7 +230,9 @@ p { margin: 0; }
 
 /* Reduced motion: no pinning, every scene shown in its settled state. */
 @media (prefers-reduced-motion: reduce) {
-  .act-hero, .act-work, .act-close { height: auto; }
+  .act-hero, .act-work, .act-close, .act-build { height: auto; }
+  .build-hud, .build-steps, .build-bar, .build-plan { display: none; }
+  .build-stage { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%); mask-image: linear-gradient(90deg, transparent 0, #000 22%); }
   .sticky { position: relative; height: auto; min-height: var(--vh); }
   .act-rail .sticky { overflow-x: auto; min-height: 0; padding: 96px 0; }
   .rail { position: relative; height: auto; transform: none; }
