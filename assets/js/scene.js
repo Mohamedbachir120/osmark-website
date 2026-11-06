@@ -4,6 +4,8 @@
    0 wordmark · 1 globe (marketing) · 2 golden-ratio grid (branding)
    3 browser (web) · 4 phone (apps) · 5 shopping bag (e-commerce)
    6 open field (ambient) · 7 portal ring (contact)
+   Solid PBR versions of each shape live in models.js; the particles settle,
+   then the matching model materialises in their place.
    ========================================================================== */
 (function () {
   'use strict';
@@ -349,7 +351,7 @@
     const reduced = !!opts.reduced;
     let renderer;
     try {
-      renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' });
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
     } catch (e) {
       return null;
     }
@@ -357,6 +359,9 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 120);
@@ -396,6 +401,20 @@
     group.add(points);
     scene.add(group);
 
+    /* solid PBR models that the particles settle into */
+    let models = {};
+    if (window.OsModels) {
+      scene.environment = window.OsModels.studioEnvironment(THREE, renderer);
+      const key = new THREE.DirectionalLight(0xfff1dc, 2.4);
+      key.position.set(-4, 6, 8);
+      const rim = new THREE.DirectionalLight(0x8fb2ff, 2.0);
+      rim.position.set(7, 1, -4);
+      const fill = new THREE.HemisphereLight(0xdfe8ff, 0x1a1020, 0.5);
+      scene.add(key, rim, fill);
+      models = window.OsModels.create(THREE, renderer, opts);
+      Object.values(models).forEach((m) => group.add(m.group));
+    }
+
     // distant star shell for depth
     const S = opts.mobile ? 700 : 1400;
     const sPos = new Float32Array(S * 3), sCol = new Float32Array(S * 3), sScale = new Float32Array(S);
@@ -429,6 +448,7 @@
 
     const ease = (e) => (e < 0.5 ? 4 * e * e * e : 1 - Math.pow(-2 * e + 2, 3) / 2);
     const easeOut = (e) => 1 - Math.pow(1 - e, 3);
+    const smooth = (a, b, x) => { const q = clamp01((x - a) / (b - a)); return q * q * (3 - 2 * q); };
     const damp = (rate, dt) => (reduced ? 1 : 1 - Math.exp(-rate * dt));
     const clock = new THREE.Clock();
 
@@ -470,6 +490,22 @@
       }
       posAttr.needsUpdate = true;
       colAttr.needsUpdate = true;
+
+      // reveal the solid model for whichever shape is settled
+      let solid = 0;
+      const introGate = clamp01((intro - 0.75) / 0.25);
+      for (const k in models) {
+        const m = models[k];
+        const d = Math.abs(state.v - k);
+        const target = (1 - smooth(0.04, 0.3, d)) * introGate;
+        const r = m.u.uReveal;
+        r.value += (target - r.value) * damp(4, dt);
+        if (r.value < 0.002) r.value = 0;
+        m.group.visible = r.value > 0;
+        if (m.group.visible && m.group.userData.tick && !reduced) m.group.userData.tick(t);
+        solid = Math.max(solid, r.value);
+      }
+      mat.uniforms.uOpacity.value = 0.85 * (1 - 0.86 * solid);
 
       const idle = reduced ? 0 : 1;
       group.position.set(state.x, state.y, 0);
