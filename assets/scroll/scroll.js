@@ -197,12 +197,18 @@
   const bVideo = buildAct.querySelector('[data-build-video]');
   const V_STEPS = [0, 0.07, 0.13, 0.18, 0.32, 0.4, 0.5, 0.72, 0.85];
   let vTime = 0;
-  if (bVideo && !reduced) {
+  // Phones and low-memory devices keep the light still-frame version: scrubbing a large
+  // video by seeking is what made weak phones stall and crash.
+  const lowMem = (navigator.deviceMemory || 8) <= 4;
+  const useVideo = bVideo && !reduced && vw() >= 700 && !lowMem;
+  if (useVideo) {
     buildAct.classList.add('has-video');
+    bVideo.poster = bVideo.dataset.poster;
+    bVideo.preload = 'auto';
     // Download the whole clip and play it from memory: scrubbing then works even on hosts
     // that do not answer byte-range requests (many shared/cPanel servers), where a plain src
     // stays frozen on the first frame.
-    const url = vw() < 700 ? bVideo.dataset.srcSm : bVideo.dataset.src;
+    const url = vw() < 1200 ? bVideo.dataset.srcSm : bVideo.dataset.src;
     fetch(url)
       .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(r.status))))
       .then((blob) => { bVideo.src = URL.createObjectURL(blob); })
