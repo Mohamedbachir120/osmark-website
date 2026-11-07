@@ -195,7 +195,15 @@
 
   // Video mode: when the section carries a video, scroll scrubs it instead of stacking stills.
   const bVideo = buildAct.querySelector('[data-build-video]');
-  const V_STEPS = [0, 0.07, 0.13, 0.18, 0.32, 0.4, 0.5, 0.72, 0.85];
+  // Step start times in the joined clip (seconds): building 0-10s, zoom into the window 10-11.5s, apartment 11.5-21.5s.
+  const V_STEPS = [0, 0.7, 1.3, 1.8, 3.2, 4, 5, 7.2, 8.5, 11.2, 18].map((s) => s / 21.5);
+  const V_EXTRA = [
+    [0.52, 'Inside', 'Virtual tours and interior renders put buyers on the sofa before handover.'],
+    [0.84, 'Online', 'And every story ends on a website that sells. Like this one.'],
+  ];
+  // The laptop screen in the clip's last frame (1920x1080): tl, tr, br, bl.
+  const SCREEN_QUAD = [[344, 177], [1594, 177], [1594, 922], [344, 922]];
+  const bScreen = buildAct.querySelector('[data-build-screen]');
   let vTime = 0;
   // Phones and low-memory devices keep the light still-frame version: scrubbing a large
   // video by seeking is what made weak phones stall and crash.
@@ -228,15 +236,27 @@
     bIntro.style.opacity = (1 - c).toFixed(3);
     bIntro.style.visibility = c >= 1 ? 'hidden' : 'visible';
     bIntro.style.translate = `0 ${-40 * easeOut(c)}px`;
-    const h = range(p, 0.07, 0.12).toFixed(3);
+    // The overlay clears away as the camera reaches the laptop, leaving only the site on screen.
+    const h = (range(p, 0.07, 0.12) * (1 - range(v, 0.94, 0.98))).toFixed(3);
     bHud.style.opacity = h;
     bSteps.style.opacity = h;
     bBar.style.transform = `scaleX(${p.toFixed(4)})`;
-    const floors = Math.round(lerp(0, 4, range(v, 0.3, 0.36)) + lerp(0, 5, range(v, 0.36, 0.46)));
+    const floors = Math.round(lerp(0, 4, range(v, 3 / 21.5, 3.6 / 21.5)) + lerp(0, 5, range(v, 3.6 / 21.5, 4.6 / 21.5)));
     bFloor.textContent = 'R+' + floors;
     let i = 0;
     while (i < V_STEPS.length - 1 && v >= V_STEPS[i + 1]) i++;
     setStep(i);
+    placeScreen(range(v, 0.975, 1));
+  }
+
+  // At the very end the real, sharp site replaces the AI-drawn one on the laptop.
+  function placeScreen(o) {
+    bScreen.style.opacity = o.toFixed(3);
+    if (o <= 0) return;
+    const r = bVideo.getBoundingClientRect();
+    const c = Math.max(r.width / 1920, r.height / 1080);
+    const ox = r.left + (r.width - 1920 * c) / 2, oy = r.top + (r.height - 1080 * c) / 2;
+    bScreen.style.transform = homography(1440, 900, SCREEN_QUAD.map(([x, y]) => [ox + x * c, oy + y * c]));
   }
 
   function layoutBuild() {
@@ -269,7 +289,7 @@
   function setStep(i) {
     if (i === bStep) return;
     bStep = i;
-    const [, name, text] = B_STEPS[i];
+    const [, name, text] = B_STEPS[i] || V_EXTRA[i - B_STEPS.length];
     bName.textContent = name;
     bText.textContent = text;
     bCaption.animate(
